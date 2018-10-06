@@ -9,10 +9,9 @@ if len(sys.argv) != 4:
     sys.exit(1)
 
 # read in the bingo terms
-in_file = open(sys.argv[1], 'r')
-terms = [line.strip() for line in in_file.readlines()]
-terms = filter(lambda x: x != "", terms)
-in_file.close()
+with open(sys.argv[1], 'r') as in_file:
+    terms = [line.strip() for line in in_file.readlines()]
+    terms = filter(lambda x: x != "", terms)
 
 # XHTML4 Strict, y'all!
 head = ("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n"
@@ -28,12 +27,9 @@ head = ("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org
         "</style>\n</head>\n<body>\n")
 
 # Generates an HTML table representation of the bingo card for terms
-def generateTable(terms, pagebreak = True):
+def generate_table(terms):
     ts = terms[:12] + ["FREE SPACE"] + terms[12:24]
-    if pagebreak:
-        res = "<table class=\"newpage\">\n"
-    else:
-        res = "<table>\n"
+    res = "<table>\n"
     for i, term in enumerate(ts):
         if i % 5 == 0:
             res += "\t<tr>\n"
@@ -43,15 +39,17 @@ def generateTable(terms, pagebreak = True):
     res += "</table>\n"
     return res
 
-out_file = open(sys.argv[2], 'w')
-out_file.write(head)
-cards = int(sys.argv[3])
-for i in range(cards):
-    random.shuffle(terms)
-    if i != cards - 1:
-        out_file.write(generateTable(terms))
-    else:
-        out_file.write(generateTable(terms, False))
-out_file.write("</body></html>")
+def page_break():
+    return "<table class=\"newpage\">\n"
 
-out_file.close()
+with open(sys.argv[2], 'w') as out_file:
+    out_file.write(head)
+    cards = int(sys.argv[3])
+    for i in range(1, cards + 1):
+        random.shuffle(terms)
+        out_file.write(generate_table(terms))
+
+        if i % 2 == 0:
+            out_file.write(page_break())
+
+    out_file.write("</body></html>")
